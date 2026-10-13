@@ -50,15 +50,11 @@ async def rate_limiter(request: Request, call_next):
     while timestamps and now - timestamps[0] >= WINDOW:
         timestamps.popleft()
 
-    if len(timestamps) >= LIMIT:
+        if len(timestamps) >= LIMIT:
         return JSONResponse(
             status_code=429,
             content={"detail": "Rate limit exceeded"},
-            headers={
-                "X-Request-ID": getattr(
-                    request.state, "request_id", str(uuid.uuid4())
-                )
-            },
+            headers={"X-Request-ID": request_id},
         )
 
     timestamps.append(now)
