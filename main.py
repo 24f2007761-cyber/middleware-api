@@ -24,9 +24,14 @@ LIMIT = 14
 WINDOW = 10
 
 
+
 @app.middleware("http")
 async def request_context(request: Request, call_next):
-    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request_id = (
+        request.headers.get("X-Request-ID")
+        or getattr(request.state, "request_id", None)
+        or str(uuid.uuid4())
+    )
     request.state.request_id = request_id
 
     response = await call_next(request)
