@@ -41,6 +41,8 @@ async def request_context(request: Request, call_next):
 
 @app.middleware("http")
 async def rate_limiter(request: Request, call_next):
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
+    request.state.request_id = request_id
     client_id = request.headers.get("X-Client-Id", "anonymous")
     now = time.monotonic()
     timestamps = client_requests[client_id]
