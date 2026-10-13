@@ -1,5 +1,4 @@
 
-
 import os
 import time
 import uuid
@@ -24,17 +23,7 @@ WINDOW = 10
 
 
 @app.middleware("http")
-async def request_context(request: Request, call_next):
-    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
-    request.state.request_id = request_id
-
-    response = await call_next(request)
-    response.headers["X-Request-ID"] = request_id
-    return response
-
-
-@app.middleware("http")
-async def rate_limiter(request: Request, call_next):
+async def request_and_rate_limit(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     request.state.request_id = request_id
 
@@ -46,14 +35,16 @@ async def rate_limiter(request: Request, call_next):
         timestamps.popleft()
 
     if len(timestamps) >= LIMIT:
-        return JSONResponse(
+        response = JSONResponse(
             status_code=429,
             content={"detail": "Rate limit exceeded"},
-            headers={"X-Request-ID": request_id},
         )
+    else:
+        timestamps.append(now)
+        response = await call_next(request)
 
-    timestamps.append(now)
-    return await call_next(request)
+    response.headers["X-Request-ID"] = request_id
+    return response
 
 
 @app.get("/ping")
