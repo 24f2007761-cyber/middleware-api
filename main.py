@@ -1,4 +1,5 @@
 
+
 import os
 import time
 import uuid
@@ -12,26 +13,19 @@ app = FastAPI()
 
 EMAIL = os.getenv("EMAIL", "24f2007761@ds.study.iitm.ac.in")
 
-
 ALLOWED_ORIGINS = [
     "https://app-6yddkz.example.com",
     "https://exam.sanand.workers.dev",
 ]
 
-# Independent request buckets for each client ID
 client_requests = defaultdict(deque)
 LIMIT = 14
 WINDOW = 10
 
 
-
 @app.middleware("http")
 async def request_context(request: Request, call_next):
-    request_id = (
-        request.headers.get("X-Request-ID")
-        or getattr(request.state, "request_id", None)
-        or str(uuid.uuid4())
-    )
+    request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     request.state.request_id = request_id
 
     response = await call_next(request)
@@ -43,6 +37,7 @@ async def request_context(request: Request, call_next):
 async def rate_limiter(request: Request, call_next):
     request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())
     request.state.request_id = request_id
+
     client_id = request.headers.get("X-Client-Id", "anonymous")
     now = time.monotonic()
     timestamps = client_requests[client_id]
@@ -50,14 +45,12 @@ async def rate_limiter(request: Request, call_next):
     while timestamps and now - timestamps[0] >= WINDOW:
         timestamps.popleft()
 
-        
-        if len(timestamps) >= LIMIT:
+    if len(timestamps) >= LIMIT:
         return JSONResponse(
             status_code=429,
             content={"detail": "Rate limit exceeded"},
             headers={"X-Request-ID": request_id},
         )
-
 
     timestamps.append(now)
     return await call_next(request)
