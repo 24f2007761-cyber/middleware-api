@@ -61,6 +61,9 @@ app.add_middleware(
         "https://app-6yddkz.example.com",
         "https://exam.sanand.workers.dev",
     ],
+    
+    expose_headers=["X-Request-ID"],
+
     allow_credentials=False,
     allow_methods=["GET", "OPTIONS"],
     allow_headers=["X-Request-ID", "X-Client-Id", "Content-Type"],
