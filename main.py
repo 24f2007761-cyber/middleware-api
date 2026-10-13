@@ -12,8 +12,10 @@ app = FastAPI()
 
 EMAIL = os.getenv("EMAIL", "24f2007761@ds.study.iitm.ac.in")
 
+
 ALLOWED_ORIGINS = [
     "https://app-6yddkz.example.com",
+    "https://exam.sanand.workers.dev",
 ]
 
 # Independent request buckets for each client ID
