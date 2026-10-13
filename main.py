@@ -55,19 +55,20 @@ async def ping(request: Request):
     }
 
 
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=[
         "https://app-6yddkz.example.com",
         "https://exam.sanand.workers.dev",
     ],
-    
-    expose_headers=["X-Request-ID"],
-
     allow_credentials=False,
     allow_methods=["GET", "OPTIONS"],
     allow_headers=["X-Request-ID", "X-Client-Id", "Content-Type"],
+    expose_headers=["X-Request-ID"],
 )
+
+app.add_middleware(RequestIDMiddleware)
 
 # Add this last so it wraps CORS and all other middleware.
 app.add_middleware(RequestIDMiddleware)
